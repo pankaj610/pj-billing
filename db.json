@@ -1,0 +1,44 @@
+{
+	"superheros": [
+		{
+			"id": 1,
+			"name": "batman",
+			"alterEgo": "Bruce Wayne"
+		},
+		{
+			"id": 2,
+			"name": "Superman",
+			"alterEgo": "Clark Kent"
+		},
+		{
+			"id": 3,
+			"name": "Wonder Woman",
+			"alterEgo": "Princes Diana"
+		},
+		{
+			"id": 4,
+			"name": "Pankaj",
+			"alterEgo": "Diana"
+		},
+		{
+			"id": 5,
+			"name": "Dumbledore",
+			"alterEgo": "Diana"
+		},
+		{
+			"id": 6,
+			"name": "Harry Potter",
+			"alterEgo": "Princes Diana"
+		},
+		{
+			"id": 7,
+			"name": "Thor",
+			"alterEgo": "Princes Diana"
+		},
+		{
+			"id": 8,
+			"name": "Iron Man",
+			"alterEgo": "Princes Diana"
+		}
+	]
+}
