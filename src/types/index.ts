@@ -13,6 +13,6 @@ export interface AppStateType {
 	login: () => void;
 	restoreUser: () => void;
 	signOut: () => void;
-	getCustomer: (search: string) => void;
+	getCustomer: (props: { search: string, isRefresh: boolean }) => void;
 	getTodaysCustomers: () => void;
 }

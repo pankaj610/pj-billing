@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { FlatList, Text, TouchableOpacity, View } from "react-native";
 import tw from "../../utils.js/tw";
-import { getCustomer, getTodaysCustomers } from "../../services/appService";
-import { Avatar, Button, Card, Divider, TextInput } from "react-native-paper";
+import { Avatar, Card, Divider, TextInput } from "react-native-paper";
 import { useAppStore } from "../../store/appStore";
-import { ScrollView } from "react-native-gesture-handler";
 import { Customer } from "../../types/billing";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { APP_ROUTES } from "../../router/RootNavigation";
+import FullScreenLoadingContainer from "../common/FullScreenLoader";
+import EmptyList from "../common/EmptyList";
 
 const LeftContent = props => <Avatar.Icon {...props} icon="account" />
 
@@ -18,12 +18,18 @@ const Home = () => {
   const [search, setSearchText] = useState("");
   const navigation = useNavigation();
 
+  console.log(JSON.stringify(customers, null, 2))
+
+  useFocusEffect(useCallback(() => {
+    getCustomer({ search, isRefresh: false })
+  }, []))
+
   useEffect(() => {
     // if (search != null && search != "") {
     //   getTodaysCustomers();
     // } else {
     // }
-    getCustomer(search);
+    getCustomer({ search, isRefresh: false });
   }, [search]);
 
   const renderCustomer = ({ item }: { item: Customer }) => {
@@ -37,6 +43,10 @@ const Home = () => {
         <Card.Title title={item.name} subtitle={item.phone} left={LeftContent} right={RightContent} />
       </Card>
     </TouchableOpacity>
+  }
+
+  if (!customers) {
+    return <FullScreenLoadingContainer />
   }
 
   return (
@@ -59,6 +69,7 @@ const Home = () => {
           renderItem={renderCustomer}
           keyExtractor={(item) => item.id.toString()}
           scrollEnabled={true}
+          ListEmptyComponent={<EmptyList />}
         />}
       </View>
 

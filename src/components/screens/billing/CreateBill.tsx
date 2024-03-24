@@ -1,10 +1,10 @@
 import React, { useRef } from 'react';
 import { useForm } from 'react-hook-form';
-import { Text, View, FlatList } from 'react-native';
+import { Text, View, FlatList, Modal } from 'react-native';
 import { Button, Card, Checkbox, TextInput } from 'react-native-paper';
 import { FormBuilder } from 'react-native-paper-form-builder';
 import tw from '../../../utils.js/tw';
-import { createBilling, createCustomer, getCustomer } from '../../../services/appService';
+import { createBilling } from '../../../services/appService';
 import { BillItem, Billing, Customer, MetalType } from '../../../types/billing';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { CheckBoxAndroid } from './CreateCustomer';
@@ -12,6 +12,9 @@ import CustomInput from '../../common/CustomInput';
 import { useAppStore } from '../../../store/appStore';
 import ModalWrapper from '../../common/ModalWrapper';
 import Row from '../../common/Row';
+import { convertToPrice } from '../../../utils.js/utils';
+import EmptyList from '../../common/EmptyList';
+import EmptyCart from '../../common/EmptyCart';
 
 
 const BILL_ITEMS = [
@@ -28,7 +31,7 @@ const BILL_ITEMS = [
     {
         value: '3',
         label: 'Tagdi',
-        metalType: MetalType.ARTIFICIAL,
+        metalType: MetalType.SILVER,
     },
 
 ]
@@ -55,15 +58,20 @@ function CreateBill() {
             labour: '0',
             discount: '0',
             showLabour: 'checked',
+            paymentMode: '',
+            amountPaid: '0',
         },
         mode: 'onChange',
     });
-    const [state, setState] = React.useState<{ taxable: "checked" | "unchecked" | "indeterminate", visible: boolean }>({ taxable: 'unchecked', visible: false });
+    const { getCustomer } = useAppStore();
+    const [state, setState] = React.useState<{ taxable: "checked" | "unchecked" | "indeterminate", visible: boolean, visiblePayment: boolean }>({ taxable: 'unchecked', visible: false, visiblePayment: false });
     const [items, setItems] = React.useState<BillItem[]>([]);
     const customer = route.params?.customer;
 
     const showModal = () => setState(s => ({ ...s, visible: true }));
-    const hideModal = () => setState(s => ({ ...s, visible: false }));
+
+    const showPaymentModal = () => setState(s => ({ ...s, visiblePayment: true }));
+    const hideModal = () => setState(s => ({ ...s, visible: false, visiblePayment: false }));
 
     const totalAmount = items.reduce((acc, item) => item.finalAmount + acc, 0);
 
@@ -87,12 +95,15 @@ function CreateBill() {
             tax,
             totalDiscount: totalDiscount,
             totalAfterTax: totalAfterTax,
+            amountPaid: parseInt(getValues().amountPaid),
+            paymentMode: getValues().paymentMode,
             goldPrice: useAppStore.getState().goldPrice,
             silverPrice: useAppStore.getState().silverPrice,
         }
         try {
             createBilling({ customer, billing: billRequest }).then(res => {
                 navigation.goBack();
+                getCustomer({ search: '', isRefresh: true })
             });
         } catch (err) {
             console.log('Error while getting customer', err);
@@ -104,14 +115,14 @@ function CreateBill() {
         return <Card key={index} style={tw`mb-3 p-3`}>
             <Row label='Item Name' value={bill.item_name} />
             <Row label='Metal Type' value={`${bill.metalType}`} />
-            <Row label='Price' value={`₹ ${bill.price}`} />
+            <Row label='Price' value={`${convertToPrice(bill.price)}`} />
             <Row label='Weight (gram)' value={`${bill.weight_in_gram} g`} />
             <Row label='Weight (milligram)' value={`${bill.weight_in_milligram} mg`} />
-            <Row label='Total' value={`= ₹ ${bill.total}`} />
-            <Row label='Labour' value={`+ ₹ ${bill.labour}`} />
-            <Row label='Discount' value={`- ₹ ${bill.discount}`} />
+            <Row label='Total' value={`= ${convertToPrice(bill.total)}`} />
+            <Row label='Labour' value={`+ ${convertToPrice(bill.labour)}`} />
+            <Row label='Discount' value={`- ${convertToPrice(bill.discount)}`} />
             <Row label='Quantity' value={bill.quantity} />
-            <Row label='Final Amount' value={`= ₹ ${bill.finalAmount}`} />
+            <Row label='Final Amount' value={`= ${convertToPrice(bill.finalAmount)}`} />
             <View style={tw`flex flex-row justify-between`}>
                 <Button mode={'contained'} onPress={() => {
                     for (let key in bill) {
@@ -130,6 +141,8 @@ function CreateBill() {
             </View>
         </Card>
     }
+
+    const amountLeft = totalAmount - parseInt(getValues().amountPaid)
 
     return (<>
         <View style={tw`px-3 py-3`}>
@@ -152,15 +165,23 @@ function CreateBill() {
                     data={items}
                     renderItem={renderItem}
                     keyExtractor={(_, index) => index.toString()}
+                    ListFooterComponent={() => parseInt(getValues().amountPaid) > 0 && <Card style={tw`mb-3 p-3`}>
+                        <Row label='Amount Paid' style="text-success" value={`${convertToPrice(getValues().amountPaid)}`} />
+                        <Row label='Payment Mode' value={getValues().paymentMode} />
+                    </Card>}
+                    ListEmptyComponent={<EmptyCart />}
+                    contentContainerStyle={{ flex: 1 }}
                 />
             </View>
             <View style={tw`flex h-[110px] border-t-[1px] border-primary`}>
-                <Row label="Total Bill Amount" value={`= ₹ ${totalAmount}`} style="pt-2" valueStyle='text-right' />
+                <Row label="Total Bill Amount" value={`= ${convertToPrice(totalAmount)}`} style="pt-2" valueStyle='text-right' />
+                <Row label="Total Amount Paid" value={` - ${convertToPrice(getValues().amountPaid)}`} style="pt-2" valueStyle='text-right text-success' />
+                <Row label="Amount Left" value={`= ${convertToPrice(amountLeft)}`} style="pt-2" valueStyle='text-right' />
                 <View style={tw`flex flex-row justify-between`}>
                     <Button mode={'contained'} onPress={() => { showModal(); reset() }} style={tw`my-2 w-[49%] bg-secondary`} icon="cart-plus">
                         Add Item
                     </Button>
-                    <Button mode={'contained'} onPress={showModal} style={tw`my-2 w-[49%] bg-green`} icon="cash-multiple">
+                    <Button mode={'contained'} onPress={showPaymentModal} style={tw`my-2 w-[49%] bg-green`} icon="cash-multiple">
                         Add Payment
                     </Button>
                 </View>
@@ -170,7 +191,6 @@ function CreateBill() {
             </View>
         </View >
         <ModalWrapper visible={state.visible} onClose={hideModal} >
-
             <Text style={tw`title text-black text-center py-3`}>Add Item</Text>
             <FormBuilder
                 control={control}
@@ -284,7 +304,6 @@ function CreateBill() {
 
             <Button mode={'contained'} style={tw`mb-4`} onPress={handleSubmit(async (bill: BillItem) => {
                 const isUpdate = getValues().total > 0;
-
                 const itemId = bill['item_id'];
                 const selectedItem = BILL_ITEMS.find(b => b.value === itemId);
                 switch (selectedItem.metalType) {
@@ -315,6 +334,61 @@ function CreateBill() {
             })}>
                 {getValues().total > 0 ? "Update" : "Add"}
             </Button>
+            <Button color='red' mode={'outlined'} style={tw`mb-4`} onPress={() => hideModal()}>Cancel</Button>
+        </ModalWrapper>
+        <ModalWrapper visible={state.visiblePayment} onClose={hideModal}>
+            <Text>Payment Method</Text>
+            <FormBuilder
+                control={control}
+                setFocus={setFocus}
+                formConfigArray={[
+                    {
+                        name: 'paymentMode',
+                        type: 'autocomplete',
+                        textInputProps: {
+                            label: 'Payment Mode',
+                            left: <TextInput.Icon name={'cash'} />,
+                        },
+                        rules: {
+                            required: {
+                                value: true,
+                                message: 'Payment Mode is required',
+                            },
+                        },
+                        options: [
+                            {
+                                value: 'Cash',
+                                label: 'Cash',
+                            },
+                            {
+                                value: 'Online',
+                                label: 'Online',
+                            },
+                            {
+                                value: 'Exchange',
+                                label: 'Exchange',
+                            },
+                        ],
+                    },
+                    {
+                        name: 'amountPaid',
+                        type: 'custom',
+                        textInputProps: {
+                            label: 'Amount',
+                            left: <TextInput.Icon name={'cash'} />,
+                        },
+                        defaultValue: '0',
+                        rules: {
+                            required: {
+                                value: true,
+                                message: 'Amount is required',
+                            },
+                        },
+                        JSX: (props) => <CustomInput {...props} keyboardType='numeric' />
+                    },
+                ]}
+            />
+            <Button mode={'contained'} style={tw`mb-4`} onPress={() => hideModal()}>Submit</Button>
         </ModalWrapper>
     </>
     );

@@ -113,6 +113,7 @@ function CreateCustomer() {
             />
             <Button mode={'contained'} onPress={handleSubmit(async (data: Customer) => {
                 try {
+                    data.datetime = Date.now()
                     const existingCustomer = await getCustomer(data.phone);
                     if (existingCustomer) {
                         alert('Customer already exists');

@@ -17,3 +17,10 @@ export const Storage = {
         await AsyncStorage.clear();
     },
 }
+
+export const convertToPrice = (num: string | number) => {
+    if (typeof num == 'number') {
+        num = String(num);
+    }
+    return `₹ ${parseInt(num).toLocaleString('en-IN')}`;
+}

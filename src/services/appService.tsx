@@ -1,7 +1,8 @@
 
 import database from '@react-native-firebase/database';
-import { BillItem, Billing, Customer } from '../types/billing';
-import { useAppStore } from '../store/appStore';
+import { Billing, Customer } from '../types/billing';
+import { Simulate } from 'react-dom/test-utils';
+import error = Simulate.error;
 const db = database();
 
 const customersRef = db.ref('/customers');
@@ -16,9 +17,11 @@ export const getCustomer = (search: string) => {
 }
 
 export const getAllCustomer = () => {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     customersRef.once('value', (snapshot) => {
       resolve(snapshot.val());
+    }, error => {
+      reject(error);
     });
   })
 }
@@ -37,20 +40,32 @@ export const createCustomer = async (data: Customer) => {
 }
 
 
-export const createBilling = ({ customer, billing }: { customer: Customer; billing: Billing }) => {
-  return new Promise((resolve) => {
+export const createBilling = ({ customer, billing }: { customer: Customer; billing: Partial<Billing> }) => {
+  return new Promise((resolve, reject) => {
     db.ref(`/bills/${customer.id}`).push()
       .update(billing).then((data) => {
         console.log(data); resolve(data);
+      }).catch(err => {
+        reject(err);
       });
   });
 }
 
 export const fetchBilling = ({ customer }: { customer: Customer; }) => {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     db.ref(`/bills/${customer.id}`).once('value', (snapshot) => {
       resolve(snapshot.val());
+    }, error => {
+      reject(error);
     });
+  });
+}
+
+export const deleteBill = ({ customer, billId }: { customer: Customer; billId: string }) => {
+  return new Promise((resolve, reject) => {
+    db.ref(`/bills/${customer.id}/${billId}`).remove().then(() => {
+      resolve("Entry Removed")
+    })
   });
 }
 

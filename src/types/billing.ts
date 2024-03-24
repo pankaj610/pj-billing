@@ -1,4 +1,5 @@
 export interface Customer {
+	datetime: number;
 	id: string;
 	name: string;
 	email: string;
@@ -43,6 +44,8 @@ export interface Billing {
 	items: BillItem[];
 	totalBeforeTax: number;
 	totalAfterTax: number;
+	amountPaid: number;
+	paymentMode: string;
 	tax: number;
 	totalDiscount: number;
 	discountReason: string;

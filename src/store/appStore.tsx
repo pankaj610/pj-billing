@@ -85,7 +85,12 @@ export const useAppStore = create<AppStateType>((set) => ({
     getTodaysCustomers: () => {
 
     },
-    getCustomer: (search: string) => {
+    getCustomer: ({ search, isRefresh }: { search: string, isRefresh: boolean }) => {
+        if (isRefresh) {
+            set(produce((state: AppStateType) => {
+                state.customers = null
+            }));
+        }
         getAllCustomer().then((data) => {
             set(produce((state: AppStateType) => {
                 const customers = transformObjectToArray(data);
