@@ -1,35 +1,45 @@
 {
-	"expo": {
-		"name": "callingmgmt",
-		"slug": "callingmgmt",
-		"version": "1.0.0",
-		"orientation": "portrait",
-		"icon": "./assets/logo.png",
-		"userInterfaceStyle": "light",
-		"splash": {
-			"image": "./assets/splash.png",
-			"resizeMode": "contain",
-			"backgroundColor": "#ffffff"
-		},
-		"updates": {
-			"fallbackToCacheTimeout": 0
-		},
-		"assetBundlePatterns": ["**/*"],
-		"ios": {
-			"supportsTablet": true,
-			"bundleIdentifier": "com.pankajverma.pjbilling"
-		},
-		"android": {
-			"adaptiveIcon": {
-				"foregroundImage": "./assets/adaptive-icon.png",
-				"backgroundColor": "#FFFFFF"
-			},
-			"package": "com.pankajverma.pjbilling",
-			"googleServicesFile": "./google-services.json"
-		},
-		"plugins": ["@react-native-google-signin/google-signin"],
-		"web": {
-			"favicon": "./assets/favicon.png"
-		}
-	}
+  "expo": {
+    "name": "callingmgmt",
+    "slug": "callingmgmt",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/logo.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.pankajverma.pjbilling"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FFFFFF"
+      },
+      "package": "com.pankajverma.pjbilling",
+      "googleServicesFile": "./google-services.json"
+    },
+    "plugins": [
+      "@react-native-google-signin/google-signin"
+    ],
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "952a9519-2ba6-4a77-9080-3f59f0c912ae"
+      }
+    },
+    "owner": "pankaj62"
+  }
 }

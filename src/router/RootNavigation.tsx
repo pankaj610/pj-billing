@@ -7,6 +7,7 @@ import { useAppStore } from '../store/appStore';
 import CreateCustomer from '../components/screens/billing/CreateCustomer';
 import CustomerBills from '../components/screens/billing/CustomerBills';
 import CreateBill from '../components/screens/billing/CreateBill';
+import PDFViewer from '../components/screens/PdfViewer';
 enableScreens();
 
 const Stack = createNativeStackNavigator();
@@ -39,6 +40,10 @@ const ROUTES = {
 		CREATE_BILL: {
 			name: 'Create Bill',
 			component: CreateBill,
+		},
+		PDF_VIEWER: {
+			name: "pdf_viewer",
+			component: PDFViewer
 		}
 	}
 }

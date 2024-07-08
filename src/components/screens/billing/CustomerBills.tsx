@@ -1,6 +1,6 @@
 import { RouteProp, useFocusEffect, useNavigation, useRoute } from '@react-navigation/native'
 import React, { useCallback, useMemo } from 'react'
-import { FlatList, Text, View } from 'react-native'
+import { FlatList, Text, View, Alert } from 'react-native'
 import { Customer } from '../../../types/billing';
 import { Button, Card, TextInput } from 'react-native-paper';
 import tw from '../../../utils.js/tw';
@@ -8,7 +8,7 @@ import { APP_ROUTES } from '../../../router/RootNavigation';
 import Row from '../../common/Row';
 import { createBilling, deleteBill, fetchBilling } from '../../../services/appService';
 import { getDueAmount, transformObjectToArray } from '../../../utils.js/helpers';
-import { convertToPrice } from '../../../utils.js/utils';
+import { convertToPrice, getInvoiceHtml } from '../../../utils.js/utils';
 import FullScreenLoadingContainer from '../../common/FullScreenLoader';
 import useFetchData from '../../../hooks/useFetchData';
 import EmptyList from '../../common/EmptyList';
@@ -17,6 +17,8 @@ import { FormBuilder } from 'react-native-paper-form-builder';
 import CustomInput from '../../common/CustomInput';
 import { useForm } from 'react-hook-form';
 import { useAppStore } from '../../../store/appStore';
+import RNHTMLtoPDF from 'react-native-html-to-pdf';
+
 
 function CustomerBills() {
     const route = useRoute<RouteProp<{
@@ -24,6 +26,7 @@ function CustomerBills() {
             customer: Customer
         }
     }>>();
+
     const { control, getValues, setFocus } = useForm({
         defaultValues: {
             paymentMode: '',
@@ -45,6 +48,25 @@ function CustomerBills() {
     useFocusEffect(useCallback(() => {
         reload()
     }, []))
+
+    const printBill = async (jsonData) => {
+        // Create HTML content dynamically
+        const htmlContent = getInvoiceHtml(jsonData, customer);
+
+        try {
+            // Generate PDF
+            const options = {
+                html: htmlContent,
+                fileName: 'invoice',
+                directory: 'Documents',
+            };
+            const file = await RNHTMLtoPDF.convert(options);
+            navigation.navigate('pdf_viewer', { url: file.filePath })
+        } catch (error) {
+            console.error('Error generating PDF:', error);
+            Alert.alert('Error', 'Failed to generate PDF');
+        }
+    };
 
     const goToCreateBill = () => {
         // @ts-ignore
@@ -94,6 +116,7 @@ function CustomerBills() {
                 <Row label="Amount Paid" valueStyle='text-green' value={convertToPrice(item.amountPaid)} />
                 {!isNaN(item.totalAfterTax - item.amountPaid) && <Row label="Amount Left" valueStyle='text-red' value={convertToPrice(item.totalAfterTax - item.amountPaid)} />}
                 <Button mode={'contained'} style={tw`mt-2`} onPress={() => {
+                    printBill(item)
                 }} icon="printer">
                     Print Bill
                 </Button>

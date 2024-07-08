@@ -1,5 +1,6 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { generateInvoiceHtml } from './invoice/html';
 
 export const Storage = {
     save: async (key, data) => {
@@ -23,4 +24,9 @@ export const convertToPrice = (num: string | number) => {
         num = String(num);
     }
     return `₹ ${parseInt(num).toLocaleString('en-IN')}`;
+}
+
+export const getInvoiceHtml = (jsonData, customerData) => {
+    console.log(JSON.stringify(customerData, null, 2))
+    return generateInvoiceHtml(jsonData, customerData)
 }
